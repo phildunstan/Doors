@@ -4,7 +4,6 @@
 #include "DoorOpenerComponent.h"
 
 #include "DoorInterface.h"
-#include "DoorNavLinkComponent.h"
 #include "NavLinkCustomInterface.h"
 #include "NavigationSystem.h"
 #include "AI/NavigationSystemBase.h"
@@ -90,17 +89,16 @@ AActor* UDoorOpenerComponent::IsApproachingClosedDoorNavLink() const
 			const UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 			if (INavLinkCustomInterface* MoveSegmentCustomLink = NavSys->GetCustomLink(PathPoints[MoveSegmentStartIndex].CustomNavLinkId))
 			{
-				// if there is a door component attached to the object containing the INavLinkCustomInterface
 				if (UActorComponent* NavLinkComponent = Cast<UActorComponent>(MoveSegmentCustomLink))
 				{
-					if (UDoorNavLinkComponent* DoorNavLinkComponent = Cast<UDoorNavLinkComponent>(NavLinkComponent->GetOwner()->FindComponentByClass(UDoorNavLinkComponent::StaticClass())))
+					// if there is a door actor that is the parent of the smart link component
+					if (AActor* NavLinkProxy = NavLinkComponent->GetOwner())
 					{
-						// check that there is a door attached that implements UDoorInterface
-						if (AActor* DoorActor = DoorNavLinkComponent->LinkedDoor.Get())
+						if (AActor* Door = NavLinkProxy->GetAttachParentActor())
 						{
-							if (DoorActor->Implements<UDoorInterface>())
+							if (Door->Implements<UDoorInterface>())
 							{
-								return DoorActor;
+								return Door;
 							}
 						}
 					}
